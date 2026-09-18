@@ -1,0 +1,9 @@
+[Unit]
+Description=Run independent rclone bisync pairs
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/.local/libexec/rclone-bisync
+ExecStart=%h/.local/libexec/rclone-bisync/bisync.sh

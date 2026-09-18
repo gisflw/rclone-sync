@@ -1,0 +1,43 @@
+# Logs and local run output.
+*.log
+*.out
+logs/
+**/logs/
+
+# Temporary/editor files.
+*.tmp
+*.temp
+*.swp
+*~
+.#*
+
+# Accidental copies of rclone credentials or configuration.
+rclone.conf
+rclone.conf.*
+**/rclone.conf
+**/rclone.conf.*
+.rclone/
+**/.rclone/
+.config/rclone/
+**/.config/rclone/
+
+# Bisync/runtime state if someone places it under this tree.
+.cache/
+**/.cache/
+bisync-state/
+**/bisync-state/
+bisync/
+**/bisync/
+*.bisync
+
+# Optional machine-local overrides. The shared configuration files below are
+# deliberately not ignored.
+config/*.local
+config/*.override
+config/local.override.env
+
+# Common OS metadata; filters.txt has the corresponding sync exclusions.
+.DS_Store
+Thumbs.db
+
+# Do not add .git/ here: nested Git repositories are valid synchronized data.
