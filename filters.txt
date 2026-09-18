@@ -1,16 +1,60 @@
-# Generated environments and caches.
-- **/.venv/**
+# Linux / filesystem junk
+- *~
+- *.swp
+- *.swo
+- *.swx
+- .directory
+- .Trash-*
+- .nfs*
+
+# macOS junk
+- .DS_Store
+- ._*
+- .Spotlight-V100/**
+- .Trashes/**
+
+# Windows junk
+- Thumbs.db
+- desktop.ini
+- ~$*
+
+# Generic temporary files
+- *.tmp
+- *.temp
+- *.bak
+- *.backup
+- *.old
+- *.orig
+
+# Editor / IDE temporary state
+- *.code-workspace~
+- **/.idea/**
+- **/.vscode/**
+
+# Python caches
 - **/__pycache__/**
+- *.pyc
+- *.pyo
 - **/.pytest_cache/**
 - **/.mypy_cache/**
 - **/.ruff_cache/**
 
-# Common OS/editor temporary files.
-- **/.DS_Store
-- **/Thumbs.db
-- **/*~
-- **/*.swp
-- **/*.tmp
+# Jupyter
+- **/.ipynb_checkpoints/**
 
-# Do not exclude .git/. Git repositories inside the synchronized folders are
-# intentionally synchronized completely.
+# Common build/cache directories
+- **/.cache/**
+- **/tmp/**
+- **/temp/**
+- **/build/**
+- **/dist/**
+- **/out/**
+- **/target/**
+
+# Zotero cache
+- **/Zotero/zotero.sqlite
+- **/Zotero/zotero.sqlite-journal
+- **/Zotero/zotero.sqlite-wal
+- **/Zotero/fulltext.sqlite
+- **/Zotero/fulltext.sqlite-journal
+- **/Zotero/fulltext.sqlite-wal
