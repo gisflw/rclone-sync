@@ -1,3 +1,6 @@
+# Retired projects
+- /retired/
+
 # Linux / filesystem junk
 - *~
 - *.swp
@@ -19,6 +22,9 @@
 - ~$*
 
 # Generic temporary files
+- *.lock
+- *.lck
+- *.pid
 - *.tmp
 - *.temp
 - *.bak
@@ -51,10 +57,7 @@
 - **/out/**
 - **/target/**
 
-# Zotero cache
-- **/Zotero/zotero.sqlite
-- **/Zotero/zotero.sqlite-journal
-- **/Zotero/zotero.sqlite-wal
-- **/Zotero/fulltext.sqlite
-- **/Zotero/fulltext.sqlite-journal
-- **/Zotero/fulltext.sqlite-wal
+# SQLite junk
+- *-wal
+- *-shm
+- *-journal
