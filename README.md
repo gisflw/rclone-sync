@@ -81,7 +81,7 @@ Push that folder. Its local source directory must exist:
 Preview a folder pull with a name containing spaces:
 
 ```bash
-./scripts/cloud-pull.sh --folder "projects/my project" --dry-run
+./scripts/cloud-pull.sh --folder "projects/example" --dry-run
 ```
 
 ## Flags and filters
@@ -101,15 +101,7 @@ Useful optional flags include:
 | `--dry-run` / `-n` | Preview changes without applying them. |
 | `--verbose` / `-v` | Show more detail, including transferred files. |
 | `--checksum` / `-c` | Compare size and checksums instead of modification times; uses size only if no common checksum is available and can require more work. |
-| `--transfers 2` | Set the number of simultaneous file transfers to two. |
-| `--bwlimit 4M` | Limit transfer bandwidth to 4 MiB/s. |
 | `--exclude '*.zip'` | Add an exclusion for this invocation; quote patterns so the shell does not expand them. |
-
-Push with a bandwidth limit and two simultaneous transfers:
-
-```bash
-./scripts/local-push.sh --transfers 2 --bwlimit 4M
-```
 
 Preview a folder pull using checksum comparison and detailed output:
 
@@ -124,6 +116,43 @@ Filter paths are relative to the selected sync root: with `--folder projects/exa
 `retired/` folder. Selecting a folder directly bypasses exclusions on its parents.
 Extra filter flags add to rclone's filtering rules; they do not automatically
 replace the shared file.
+
+## Transfer speed
+
+These optional settings use rclone's defaults unless you pass a different value.
+Tune one at a time; more concurrency can help until bandwidth, disk speed, or
+remote API throttling becomes the bottleneck.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--transfers` | `4` | Files transferred in parallel. Try `8` for many files on a fast connection; reduce if timeouts increase. |
+| `--bwlimit` | Unlimited | Cap transfer bandwidth, for example `4M` for 4 MiB/s. Leave unset for maximum available speed. |
+| `--checkers` | `8` | Parallel file comparisons. Try `16` if checking is slow and the remote handles extra requests. |
+| `--fast-list` | `false` | Use recursive listings where supported, reducing API requests at the cost of more RAM. Compare timings on your remote. |
+| `--buffer-size` | `16Mi` | Read buffer per transfer. Try `32Mi` if buffering helps; memory use grows with simultaneous transfers. |
+| `--multi-thread-streams` | `4` | Streams per large file on supported destinations. Try `8` for large cloud pulls; Google Drive uploads do not support this mode. |
+| `--multi-thread-cutoff` | `256Mi` | File size above which multithread transfers are used. Lowering it enables parallel streams for smaller files, with extra overhead. |
+
+Defaults were checked against rclone v1.69.3. See
+[rclone's tuning documentation](https://rclone.org/docs/#transfers-int) for details.
+
+Try pushing with more concurrent file transfers and comparisons:
+
+```bash
+./scripts/local-push.sh --transfers 8 --checkers 16
+```
+
+Try pulling large files with more streams per file:
+
+```bash
+./scripts/cloud-pull.sh --folder projects/example --multi-thread-streams 8
+```
+
+Push with a bandwidth limit and two simultaneous transfers:
+
+```bash
+./scripts/local-push.sh --transfers 2 --bwlimit 4M
+```
 
 For full flag semantics, see [rclone's flag reference](https://rclone.org/flags/),
 [sync documentation](https://rclone.org/commands/rclone_sync/), and

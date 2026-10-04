@@ -3,6 +3,12 @@
 - /prh/
 - /images/
 
+# environments / compilers
+- **/.venv/
+- **/build/
+- **/node_modules/
+- **/dist/
+
 # Linux / filesystem junk
 - *~
 - *.swp
