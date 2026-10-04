@@ -35,17 +35,38 @@ for the following commands: the scripts read `local.env` themselves.
 
 ## Commands from anywhere
 
-From the repository root, install `cpull` and `cpush` for your account:
+From the repository root, create the shortcut directory for your account:
 
 ```bash
-mkdir -p "$HOME/.local/bin" && ln -sT "$PWD/scripts/cloud-pull.sh" "$HOME/.local/bin/cpull" && ln -sT "$PWD/scripts/cloud-push.sh" "$HOME/.local/bin/cpush"
+mkdir -p "$HOME/.local/bin"
 ```
 
-`$HOME/.local/bin` must be on your `PATH`; it is already on this machine's PATH.
-The command creates symlinks and refuses to overwrite existing shortcut files.
+Still in the repository root, install the `cpull` and `cpush` shortcuts:
+
+```bash
+ln -sT "$PWD/scripts/cloud-pull.sh" "$HOME/.local/bin/cpull" && \
+ln -sT "$PWD/scripts/cloud-push.sh" "$HOME/.local/bin/cpush"
+```
+
+These commands create symlinks and refuse to overwrite existing shortcut files.
 The links follow repository updates automatically, so no reinstall is needed.
 Moving or deleting the clone breaks the links; recreate them if you move it.
 No shell variables need to be loaded: both commands read the clone's `local.env`.
+
+`$HOME/.local/bin` must be on your `PATH`. If Bash cannot find the shortcuts,
+add the directory to your Bash startup file once on that machine. This command
+can run from any working directory:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+```
+
+Reload the startup file in your current Bash terminal, from any working directory.
+New Bash terminals load the setting automatically:
+
+```bash
+source "$HOME/.bashrc"
+```
 
 `cpull` and `cpush` accept the same arguments as `cloud-pull.sh` and
 `cloud-push.sh`, including `--folder` and rclone flags. They apply changes
