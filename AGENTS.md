@@ -13,13 +13,22 @@ add no dependencies or configuration layers.
 - `scripts/cloud-pull.sh` and `scripts/cloud-push.sh`: convenience wrappers around
   `scripts/directional-sync.sh`.
 - `scripts/directional-sync.sh`: maps roots or an optional relative `--folder`,
-  then executes exactly one `rclone sync` with shared filters and progress output.
+  then previews with `rclone sync --dry-run` and optionally syncs after confirmation,
+  using shared filters and progress output.
 - `tests/smoke.sh`: isolated smoke test with a mocked rclone and temporary HOME.
 
 ## Behavior and scope
 
-- Commands apply changes immediately. Pass `--dry-run` to preview; do not add
-  `--execute`, marker checks, locks, remote discovery, bisync state, or timers.
+- Commands preview changes, show grouped filenames and counts, then require `y`
+  or `yes` confirmation before syncing. Pass `--dry-run` / `-n` for preview only.
+  Do not add bypass flags, `--execute`, marker checks, locks, remote discovery,
+  bisync state, or timers.
+- Abort on preview errors or unavailable confirmation input. Other answers cancel
+  successfully. No reported changes means success without prompting or syncing.
+  Deduplicate report entries and clean up temporary reports on every exit.
+- The preview is a prediction; the actual sync scans again. Force preview-only
+  execution and an internal report after custom flags; the actual sync receives
+  the original arguments. Keep preview and sync logs together per invocation.
 - Sync overwrites destination files and can delete files absent from the source.
   Keep that behavior clear in documentation.
 - A missing local root remains an error; scripts must not create it.
@@ -38,7 +47,7 @@ add no dependencies or configuration layers.
   operations in separate snippets.
 - Label configuration examples as configuration, not commands to execute.
 - State the working directory and any shell variables required by later steps.
-- Explain immediate execution, destination deletions, and optional dry-run
+- Explain preview and confirmation, destination deletions, and optional preview-only
   behavior before showing transfer commands.
 - Explain default flags and documented optional flags; keep examples consistent
   with the scripts.
