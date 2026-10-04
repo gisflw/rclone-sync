@@ -1,6 +1,7 @@
-# Retired projects
+# Ignored drive folders
 - /retired/
 - /prh/
+- /images/
 
 # Linux / filesystem junk
 - *~

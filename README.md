@@ -128,17 +128,3 @@ replace the shared file.
 For full flag semantics, see [rclone's flag reference](https://rclone.org/flags/),
 [sync documentation](https://rclone.org/commands/rclone_sync/), and
 [filtering documentation](https://rclone.org/filtering/).
-
-## Migrating from bisync
-
-If you installed the old timer, disable it before using these manual commands:
-
-```bash
-systemctl --user disable --now rclone-bisync.timer
-```
-
-If an old service invocation is still running, let it finish before pulling or
-pushing. This repository no longer supplies systemd units or uses bisync state,
-`RCLONE_TEST` markers, or `--execute`. Existing installed units are not changed
-by these scripts. Old state and markers are no longer needed; markers remaining
-inside a sync root are treated as ordinary files.
