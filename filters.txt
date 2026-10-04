@@ -1,13 +1,7 @@
 # Ignored drive folders
-- /retired/
-- /prh/
-- /images/
-
-# environments / compilers
-- **/.venv/
-- **/build/
-- **/node_modules/
-- **/dist/
+- /retired/**
+- /prh/**
+- /images/**
 
 # Linux / filesystem junk
 - *~
@@ -15,7 +9,7 @@
 - *.swo
 - *.swx
 - .directory
-- .Trash-*
+- .Trash-*/**
 - .nfs*
 
 # macOS junk
@@ -30,20 +24,14 @@
 - ~$*
 
 # Generic temporary files
-- *.lock
-- *.lck
-- *.pid
 - *.tmp
 - *.temp
 - *.bak
-- *.backup
-- *.old
-- *.orig
 
 # Editor / IDE temporary state
 - *.code-workspace~
 - **/.idea/**
-- **/.vscode/**
+- **/.venv/**
 
 # Python caches
 - **/__pycache__/**
@@ -52,20 +40,17 @@
 - **/.pytest_cache/**
 - **/.mypy_cache/**
 - **/.ruff_cache/**
-
-# Jupyter
 - **/.ipynb_checkpoints/**
 
 # Common build/cache directories
 - **/.cache/**
-- **/tmp/**
-- **/temp/**
 - **/build/**
 - **/dist/**
 - **/out/**
 - **/target/**
+- **/node_modules/**
 
-# SQLite junk
+# SQLite transient files
 - *-wal
 - *-shm
 - *-journal
