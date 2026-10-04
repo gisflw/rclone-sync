@@ -10,7 +10,7 @@ add no dependencies or configuration layers.
   paths and the remote name. `LOCAL_ROOT` must be absolute and already exist.
 - `filters.txt`: shared rclone filters. Preserve generated-file exclusions and
   synchronization of nested `.git/` directories.
-- `scripts/cloud-pull.sh` and `scripts/local-push.sh`: convenience wrappers around
+- `scripts/cloud-pull.sh` and `scripts/cloud-push.sh`: convenience wrappers around
   `scripts/directional-sync.sh`.
 - `scripts/directional-sync.sh`: maps roots or an optional relative `--folder`,
   then executes exactly one `rclone sync` with shared filters and progress output.

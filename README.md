@@ -1,7 +1,7 @@
-# Cloud pull and local push
+# Cloud pull and cloud push
 
 Two manual commands synchronize `LOCAL_ROOT` with the root of `REMOTE_NAME`:
-cloud pull before a session, local push during work and before switching machines.
+cloud pull before a session, cloud push during work and before switching machines.
 
 Both commands **apply changes immediately** using `rclone sync`. The source wins:
 differing destination files are overwritten, and destination files absent from the
@@ -33,6 +33,37 @@ do not create the root. `REMOTE_NAME` is the configured rclone remote name, with
 a colon or path; `gdrive` maps to `gdrive:`. No shell variables need to be loaded
 for the following commands: the scripts read `local.env` themselves.
 
+## Commands from anywhere
+
+From the repository root, install `cpull` and `cpush` for your account:
+
+```bash
+mkdir -p "$HOME/.local/bin" && ln -sT "$PWD/scripts/cloud-pull.sh" "$HOME/.local/bin/cpull" && ln -sT "$PWD/scripts/cloud-push.sh" "$HOME/.local/bin/cpush"
+```
+
+`$HOME/.local/bin` must be on your `PATH`; it is already on this machine's PATH.
+The command creates symlinks and refuses to overwrite existing shortcut files.
+The links follow repository updates automatically, so no reinstall is needed.
+Moving or deleting the clone breaks the links; recreate them if you move it.
+No shell variables need to be loaded: both commands read the clone's `local.env`.
+
+`cpull` and `cpush` accept the same arguments as `cloud-pull.sh` and
+`cloud-push.sh`, including `--folder` and rclone flags. They apply changes
+immediately and can overwrite or delete destination files; use `--dry-run` to
+preview.
+
+Preview a cloud pull from any working directory after installation:
+
+```bash
+cpull --dry-run
+```
+
+Push from any working directory after installation:
+
+```bash
+cpush
+```
+
 ## Session workflow
 
 Preview a cloud pull when you want to inspect the changes first:
@@ -50,7 +81,7 @@ Pull at the beginning of your session to make local files match the cloud:
 Push during work and at the end to make the cloud match your local files:
 
 ```bash
-./scripts/local-push.sh
+./scripts/cloud-push.sh
 ```
 
 Finish pushing successfully before pulling on another machine. Pulling overwrites
@@ -75,7 +106,7 @@ by rclone, but the local root must already exist:
 Push that folder. Its local source directory must exist:
 
 ```bash
-./scripts/local-push.sh --folder projects/example
+./scripts/cloud-push.sh --folder projects/example
 ```
 
 Preview a folder pull with a name containing spaces:
@@ -140,7 +171,7 @@ tail -n 50 last_sync.log
 Choose a different log file for a particular run:
 
 ```bash
-./scripts/local-push.sh --log-file "$HOME/local-push.log"
+./scripts/cloud-push.sh --log-file "$HOME/cloud-push.log"
 ```
 
 See [rclone's logging documentation](https://rclone.org/docs/#log-file-file) for details.
@@ -170,7 +201,7 @@ The inherited rclone defaults were checked against v1.69.3. See
 Push with reduced concurrency if the remote is throttling requests:
 
 ```bash
-./scripts/local-push.sh --transfers 8 --checkers 16
+./scripts/cloud-push.sh --transfers 8 --checkers 16
 ```
 
 Try pulling large files with more streams per file:
@@ -182,7 +213,7 @@ Try pulling large files with more streams per file:
 Push with a bandwidth limit and two simultaneous transfers:
 
 ```bash
-./scripts/local-push.sh --transfers 2 --bwlimit 4M
+./scripts/cloud-push.sh --transfers 2 --bwlimit 4M
 ```
 
 For full flag semantics, see [rclone's flag reference](https://rclone.org/flags/),

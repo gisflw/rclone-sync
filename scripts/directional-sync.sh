@@ -5,7 +5,7 @@ direction="$1"
 shift
 case "$direction" in
     pull) command_name=cloud-pull ;;
-    push) command_name=local-push ;;
+    push) command_name=cloud-push ;;
     *) printf 'Unknown direction: %s\n' "$direction" >&2; exit 1 ;;
 esac
 

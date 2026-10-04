@@ -20,6 +20,10 @@ chmod +x "$fixture/bin/rclone"
 export HOME="$fixture/home" PATH="$fixture/bin:$PATH"
 export MOCK_LOG="$fixture/repo/last_sync.log"
 ln -s "$fixture/repo" "$fixture/repo-link"
+mkdir -p "$HOME/.local/bin"
+ln -sT "$fixture/repo/scripts/cloud-pull.sh" "$HOME/.local/bin/cpull"
+ln -sT "$fixture/repo/scripts/cloud-push.sh" "$HOME/.local/bin/cpush"
+export PATH="$HOME/.local/bin:$PATH"
 cd "$fixture"
 
 reset_calls() { : > "$HOME/calls"; }
@@ -42,7 +46,7 @@ expect_failure() {
 }
 
 pull="$fixture/repo-link/scripts/cloud-pull.sh"
-push="$fixture/repo/scripts/local-push.sh"
+push="$fixture/repo/scripts/cloud-push.sh"
 local_root="$HOME/local root"
 
 reset_calls
@@ -65,6 +69,14 @@ reset_calls
 check_call "$local_root/projects/my project" 'mock:projects/my project' --verbose
 
 reset_calls
+cpull --folder 'projects/my project' "${flags[@]}"
+check_call 'mock:projects/my project' "$local_root/projects/my project" "${flags[@]}"
+
+reset_calls
+cpush --folder 'projects/my project' "${flags[@]}"
+check_call "$local_root/projects/my project" 'mock:projects/my project' "${flags[@]}"
+
+reset_calls
 "$pull" --folder new/folder
 check_call mock:new/folder "$local_root/new/folder"
 
@@ -79,7 +91,7 @@ reset_calls
 "$push" -h > /dev/null
 [[ ! -s "$HOME/calls" ]]
 
-for command in "$pull" "$push"; do
+for command in "$pull" "$push" cpull cpush; do
     reset_calls
     status=0
     MOCK_EXIT=7 "$command" || status=$?
