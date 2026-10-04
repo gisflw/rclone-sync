@@ -4,31 +4,91 @@ set -euo pipefail
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 fixture="$(mktemp -d)"
 trap 'rm -rf "$fixture"' EXIT
-mkdir -p "$fixture/repo/scripts" "$fixture/home/local" "$fixture/bin"
+mkdir -p "$fixture/repo/scripts" "$fixture/home/local root/projects/my project" "$fixture/bin"
 cp "$repo"/scripts/*.sh "$fixture/repo/scripts/"
 cp "$repo/filters.txt" "$fixture/repo/filters.txt"
-printf 'LOCAL_ROOT="$HOME/local"\nREMOTE_NAME=mock\n' > "$fixture/repo/local.env"
-touch "$fixture/home/local/RCLONE_TEST"
+printf 'LOCAL_ROOT="$HOME/local root"\nREMOTE_NAME=mock\n' > "$fixture/repo/local.env"
 
 cat > "$fixture/bin/rclone" <<'EOF'
 #!/usr/bin/env bash
-case "$1" in
-    listremotes) printf 'mock:\n' ;;
-    lsf) printf 'RCLONE_TEST\n' ;;
-    bisync|sync) printf '%s\n' "$*" >> "$HOME/calls" ;;
-    *) exit 1 ;;
-esac
+printf 'call\n' >> "$HOME/calls"
+printf '%s\0' "$@" > "$HOME/args"
+exit "${MOCK_EXIT:-0}"
 EOF
 chmod +x "$fixture/bin/rclone"
 export HOME="$fixture/home" PATH="$fixture/bin:$PATH"
 ln -s "$fixture/repo" "$fixture/repo-link"
+cd "$fixture"
 
-"$fixture/repo-link/scripts/bisync.sh" > /dev/null
-"$fixture/repo/scripts/resync.sh" > /dev/null
-"$fixture/repo/scripts/cloud-pull.sh" > /dev/null
-"$fixture/repo/scripts/local-push.sh" > /dev/null
-[[ "$(wc -l < "$HOME/calls")" -eq 4 ]]
-[[ "$(sed -n '2p' "$HOME/calls")" == *'--resync-mode newer'*'--dry-run' ]]
-[[ "$(sed -n '3p' "$HOME/calls")" == "sync mock: $HOME/local "*'--dry-run' ]]
-[[ "$(sed -n '4p' "$HOME/calls")" == "sync $HOME/local mock: "*'--dry-run' ]]
+reset_calls() { : > "$HOME/calls"; }
+check_call() {
+    [[ "$(wc -l < "$HOME/calls")" -eq 1 ]]
+    local source_path="$1" destination_path="$2"
+    shift 2
+    printf '%s\0' sync "$source_path" "$destination_path" --filter-from "$fixture/repo/filters.txt" --progress "$@" > "$HOME/expected"
+    cmp "$HOME/expected" "$HOME/args"
+}
+expect_failure() {
+    reset_calls
+    if "$@" > /dev/null 2>&1; then
+        printf 'Expected failure: %s\n' "$*" >&2
+        exit 1
+    fi
+    [[ ! -s "$HOME/calls" ]]
+}
+
+pull="$fixture/repo-link/scripts/cloud-pull.sh"
+push="$fixture/repo/scripts/local-push.sh"
+local_root="$HOME/local root"
+
+reset_calls
+"$pull"
+check_call mock: "$local_root"
+
+reset_calls
+"$push"
+check_call "$local_root" mock:
+
+flags=(--dry-run --checksum --transfers 2 --bwlimit 4M --exclude '*.large file' --progress=false)
+reset_calls
+"$pull" --folder 'projects/my project' "${flags[@]}"
+check_call 'mock:projects/my project' "$local_root/projects/my project" "${flags[@]}"
+
+reset_calls
+"$push" --folder 'projects/my project' --verbose
+check_call "$local_root/projects/my project" 'mock:projects/my project' --verbose
+
+reset_calls
+"$pull" --folder new/folder
+check_call mock:new/folder "$local_root/new/folder"
+
+expect_failure "$push" --folder new/folder
+for folder in '' /absolute .. ../outside projects/../outside projects/.. --dry-run; do
+    expect_failure "$pull" --folder "$folder"
+done
+expect_failure "$pull" --folder
+
+reset_calls
+"$pull" --help > /dev/null
+"$push" -h > /dev/null
+[[ ! -s "$HOME/calls" ]]
+
+for command in "$pull" "$push"; do
+    reset_calls
+    status=0
+    MOCK_EXIT=7 "$command" || status=$?
+    [[ "$status" -eq 7 ]]
+    [[ "$(wc -l < "$HOME/calls")" -eq 1 ]]
+done
+
+printf 'LOCAL_ROOT="$HOME/missing"\nREMOTE_NAME=mock\n' > "$fixture/repo/local.env"
+expect_failure "$pull"
+expect_failure "$push"
+[[ ! -e "$HOME/missing" ]]
+
+printf 'LOCAL_ROOT="relative"\nREMOTE_NAME=mock\n' > "$fixture/repo/local.env"
+mkdir relative
+expect_failure "$pull"
+expect_failure "$push"
+
 printf 'smoke test passed\n'

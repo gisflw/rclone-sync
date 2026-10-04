@@ -1,5 +1,6 @@
 # Retired projects
 - /retired/
+- /prh/
 
 # Linux / filesystem junk
 - *~
