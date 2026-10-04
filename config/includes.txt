@@ -1,4 +1,0 @@
-# One path per independent bisync pair, relative to LOCAL_ROOT and REMOTE_NAME:
-Projs
-Documents
-Research
