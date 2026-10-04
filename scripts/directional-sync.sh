@@ -37,8 +37,10 @@ if [[ -n "$folder" ]]; then
     local_path="${LOCAL_ROOT%/}/$folder"
     remote_path+="$folder"
 fi
+flags=(--filter-from "$repo_dir/filters.txt" --progress
+    --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M)
 if [[ "$direction" == pull ]]; then
-    exec rclone sync "$remote_path" "$local_path" --filter-from "$repo_dir/filters.txt" --progress "$@"
+    exec rclone sync "$remote_path" "$local_path" "${flags[@]}" "$@"
 fi
 [[ -d "$local_path" ]] || { printf 'Local source folder is missing: %s\n' "$local_path" >&2; exit 1; }
-exec rclone sync "$local_path" "$remote_path" --filter-from "$repo_dir/filters.txt" --progress "$@"
+exec rclone sync "$local_path" "$remote_path" "${flags[@]}" "$@"

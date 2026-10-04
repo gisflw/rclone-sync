@@ -86,14 +86,16 @@ Preview a folder pull with a name containing spaces:
 
 ## Flags and filters
 
-The scripts supply just two default flags:
+The scripts supply shared filters and progress output, plus the defaults listed
+in the transfer-speed section:
 
 | Flag | Reason |
 | --- | --- |
 | `--filter-from filters.txt` | Apply the shared exclusions using the file's absolute repository path. |
 | `--progress` | Show live transfer statistics. Disable with `--progress=false`. |
 
-All other arguments are passed directly to rclone, with quoted arguments preserved.
+Additional arguments are passed directly to rclone after the defaults, with quoted
+arguments preserved. Custom values override the corresponding default settings.
 Useful optional flags include:
 
 | Flag | Effect |
@@ -119,24 +121,27 @@ replace the shared file.
 
 ## Transfer speed
 
-These optional settings use rclone's defaults unless you pass a different value.
+The Default column shows the settings used by these scripts. They enable
+`--fast-list` and `--check-first`, set `--checkers 32`, `--transfers 16`, and `--buffer-size 32M`,
+and leave the remaining settings at rclone's defaults. Pass flags to override them.
 Tune one at a time; more concurrency can help until bandwidth, disk speed, or
 remote API throttling becomes the bottleneck.
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--transfers` | `4` | Files transferred in parallel. Try `8` for many files on a fast connection; reduce if timeouts increase. |
+| `--transfers` | `16` | Files transferred in parallel. Reduce if timeouts increase or bandwidth is already saturated. |
 | `--bwlimit` | Unlimited | Cap transfer bandwidth, for example `4M` for 4 MiB/s. Leave unset for maximum available speed. |
-| `--checkers` | `8` | Parallel file comparisons. Try `16` if checking is slow and the remote handles extra requests. |
-| `--fast-list` | `false` | Use recursive listings where supported, reducing API requests at the cost of more RAM. Compare timings on your remote. |
-| `--buffer-size` | `16Mi` | Read buffer per transfer. Try `32Mi` if buffering helps; memory use grows with simultaneous transfers. |
+| `--checkers` | `32` | Parallel file comparisons. Reduce if the remote throttles requests. |
+| `--fast-list` | `true` | Use recursive listings where supported, reducing API requests at the cost of more RAM. Disable with `--fast-list=false`. |
+| `--check-first` | `true` | Finish all file comparisons before transferring, avoiding competition for disk I/O but delaying transfers and using more RAM. Disable with `--check-first=false`. |
+| `--buffer-size` | `32M` | Read buffer per transfer (32 MiB). Memory use grows with simultaneous transfers; pass a smaller value to reduce it. |
 | `--multi-thread-streams` | `4` | Streams per large file on supported destinations. Try `8` for large cloud pulls; Google Drive uploads do not support this mode. |
 | `--multi-thread-cutoff` | `256Mi` | File size above which multithread transfers are used. Lowering it enables parallel streams for smaller files, with extra overhead. |
 
-Defaults were checked against rclone v1.69.3. See
+The inherited rclone defaults were checked against v1.69.3. See
 [rclone's tuning documentation](https://rclone.org/docs/#transfers-int) for details.
 
-Try pushing with more concurrent file transfers and comparisons:
+Push with reduced concurrency if the remote is throttling requests:
 
 ```bash
 ./scripts/local-push.sh --transfers 8 --checkers 16
