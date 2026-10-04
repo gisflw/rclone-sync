@@ -38,6 +38,7 @@ if [[ -n "$folder" ]]; then
     remote_path+="$folder"
 fi
 flags=(--filter-from "$repo_dir/filters.txt" --progress
+    --verbose --log-file "$repo_dir/rclone.log"
     --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M)
 if [[ "$direction" == pull ]]; then
     exec rclone sync "$remote_path" "$local_path" "${flags[@]}" "$@"

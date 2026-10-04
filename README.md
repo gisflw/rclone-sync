@@ -86,13 +86,15 @@ Preview a folder pull with a name containing spaces:
 
 ## Flags and filters
 
-The scripts supply shared filters and progress output, plus the defaults listed
+The scripts supply shared filters, logging, and progress output, plus the defaults listed
 in the transfer-speed section:
 
 | Flag | Reason |
 | --- | --- |
 | `--filter-from filters.txt` | Apply the shared exclusions using the file's absolute repository path. |
 | `--progress` | Show live transfer statistics. Disable with `--progress=false`. |
+| `--verbose` | Record per-file messages at INFO level. |
+| `--log-file rclone.log` | Append rclone messages to this file in the repository, keeping terminal output focused on progress. |
 
 Additional arguments are passed directly to rclone after the defaults, with quoted
 arguments preserved. Custom values override the corresponding default settings.
@@ -101,7 +103,7 @@ Useful optional flags include:
 | Flag | Effect |
 | --- | --- |
 | `--dry-run` / `-n` | Preview changes without applying them. |
-| `--verbose` / `-v` | Show more detail, including transferred files. |
+| `--verbose` / `-v` | Add DEBUG detail to the log, since verbose logging is already enabled by default. |
 | `--checksum` / `-c` | Compare size and checksums instead of modification times; uses size only if no common checksum is available and can require more work. |
 | `--exclude '*.zip'` | Add an exclusion for this invocation; quote patterns so the shell does not expand them. |
 
@@ -118,6 +120,28 @@ Filter paths are relative to the selected sync root: with `--folder projects/exa
 `retired/` folder. Selecting a folder directly bypasses exclusions on its parents.
 Extra filter flags add to rclone's filtering rules; they do not automatically
 replace the shared file.
+
+## Logs
+
+Both commands append verbose messages, including rclone errors, to `rclone.log`
+in the repository directory. The existing `*.log` rule in `.gitignore` excludes
+it from Git. Progress stays in the terminal; shell configuration errors still
+appear there. A failed sync returns a nonzero exit status; read the log for details.
+The log is appended across runs without automatic rotation.
+
+Read the latest log messages from the repository directory:
+
+```bash
+tail -n 50 rclone.log
+```
+
+Choose a different log file for a particular run:
+
+```bash
+./scripts/local-push.sh --log-file "$HOME/local-push.log"
+```
+
+See [rclone's logging documentation](https://rclone.org/docs/#log-file-file) for details.
 
 ## Transfer speed
 

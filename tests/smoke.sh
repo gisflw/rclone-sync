@@ -26,6 +26,7 @@ check_call() {
     local source_path="$1" destination_path="$2"
     shift 2
     printf '%s\0' sync "$source_path" "$destination_path" --filter-from "$fixture/repo/filters.txt" --progress \
+        --verbose --log-file "$fixture/repo/rclone.log" \
         --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M "$@" > "$HOME/expected"
     cmp "$HOME/expected" "$HOME/args"
 }
@@ -50,7 +51,7 @@ reset_calls
 "$push"
 check_call "$local_root" mock:
 
-flags=(--dry-run --checksum --transfers 2 --checkers 8 --fast-list=false --check-first=false --buffer-size 16M --bwlimit 4M --exclude '*.large file' --progress=false)
+flags=(--dry-run --checksum --transfers 2 --checkers 8 --fast-list=false --check-first=false --buffer-size 16M --bwlimit 4M --exclude '*.large file' --progress=false --log-file "$HOME/custom log.log")
 reset_calls
 "$pull" --folder 'projects/my project' "${flags[@]}"
 check_call 'mock:projects/my project' "$local_root/projects/my project" "${flags[@]}"
