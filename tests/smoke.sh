@@ -12,11 +12,13 @@ printf 'LOCAL_ROOT="$HOME/local root"\nREMOTE_NAME=mock\n' > "$fixture/repo/loca
 cat > "$fixture/bin/rclone" <<'EOF'
 #!/usr/bin/env bash
 printf 'call\n' >> "$HOME/calls"
+[[ ! -e "$MOCK_LOG" ]] || exit 99
 printf '%s\0' "$@" > "$HOME/args"
 exit "${MOCK_EXIT:-0}"
 EOF
 chmod +x "$fixture/bin/rclone"
 export HOME="$fixture/home" PATH="$fixture/bin:$PATH"
+export MOCK_LOG="$fixture/repo/last_sync.log"
 ln -s "$fixture/repo" "$fixture/repo-link"
 cd "$fixture"
 
@@ -26,7 +28,7 @@ check_call() {
     local source_path="$1" destination_path="$2"
     shift 2
     printf '%s\0' sync "$source_path" "$destination_path" --filter-from "$fixture/repo/filters.txt" --progress \
-        --verbose --log-file "$fixture/repo/rclone.log" \
+        --verbose --log-file "$fixture/repo/last_sync.log" \
         --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M "$@" > "$HOME/expected"
     cmp "$HOME/expected" "$HOME/args"
 }
@@ -44,10 +46,12 @@ push="$fixture/repo/scripts/local-push.sh"
 local_root="$HOME/local root"
 
 reset_calls
+printf 'old pull log\n' > "$MOCK_LOG"
 "$pull"
 check_call mock: "$local_root"
 
 reset_calls
+printf 'old push log\n' > "$MOCK_LOG"
 "$push"
 check_call "$local_root" mock:
 

@@ -94,7 +94,7 @@ in the transfer-speed section:
 | `--filter-from filters.txt` | Apply the shared exclusions using the file's absolute repository path. |
 | `--progress` | Show live transfer statistics. Disable with `--progress=false`. |
 | `--verbose` | Record per-file messages at INFO level. |
-| `--log-file rclone.log` | Append rclone messages to this file in the repository, keeping terminal output focused on progress. |
+| `--log-file last_sync.log` | Record the latest sync in this file in the repository, keeping terminal output focused on progress. |
 
 Additional arguments are passed directly to rclone after the defaults, with quoted
 arguments preserved. Custom values override the corresponding default settings.
@@ -123,16 +123,18 @@ replace the shared file.
 
 ## Logs
 
-Both commands append verbose messages, including rclone errors, to `rclone.log`
-in the repository directory. The existing `*.log` rule in `.gitignore` excludes
+Both commands remove `last_sync.log` if it exists before starting rclone, then
+record verbose messages, including rclone errors, in that file in the repository
+directory. This also applies to dry runs. The existing `*.log` rule in `.gitignore` excludes
 it from Git. Progress stays in the terminal; shell configuration errors still
 appear there. A failed sync returns a nonzero exit status; read the log for details.
-The log is appended across runs without automatic rotation.
+The file contains only the latest run. A custom `--log-file` is passed through
+unchanged; custom log files are not removed.
 
 Read the latest log messages from the repository directory:
 
 ```bash
-tail -n 50 rclone.log
+tail -n 50 last_sync.log
 ```
 
 Choose a different log file for a particular run:

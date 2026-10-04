@@ -37,11 +37,15 @@ if [[ -n "$folder" ]]; then
     local_path="${LOCAL_ROOT%/}/$folder"
     remote_path+="$folder"
 fi
+if [[ "$direction" == push && ! -d "$local_path" ]]; then
+    printf 'Local source folder is missing: %s\n' "$local_path" >&2
+    exit 1
+fi
+rm -f -- "$repo_dir/last_sync.log"
 flags=(--filter-from "$repo_dir/filters.txt" --progress
-    --verbose --log-file "$repo_dir/rclone.log"
+    --verbose --log-file "$repo_dir/last_sync.log"
     --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M)
 if [[ "$direction" == pull ]]; then
     exec rclone sync "$remote_path" "$local_path" "${flags[@]}" "$@"
 fi
-[[ -d "$local_path" ]] || { printf 'Local source folder is missing: %s\n' "$local_path" >&2; exit 1; }
 exec rclone sync "$local_path" "$remote_path" "${flags[@]}" "$@"
