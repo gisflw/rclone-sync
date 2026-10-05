@@ -10,7 +10,7 @@ case "$direction" in
 esac
 
 if [[ "${1:-}" == -h || "${1:-}" == --help ]]; then
-    printf 'Usage: %s.sh [--folder relative/path] [rclone flags...]\nApplies changes immediately. Use --dry-run to preview.\n' "$command_name"
+    printf 'Usage: %s.sh [--folder relative/path] [rclone flags...]\nApplies changes immediately with interactive prompts. Use --dry-run to preview.\n' "$command_name"
     exit 0
 fi
 
@@ -43,7 +43,7 @@ if [[ "$direction" == push && ! -d "$local_path" ]]; then
 fi
 rm -f -- "$repo_dir/last_sync.log"
 flags=(--filter-from "$repo_dir/filters.txt" --progress
-    --verbose --log-file "$repo_dir/last_sync.log"
+    --verbose --log-file "$repo_dir/last_sync.log" --combined - --interactive
     --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M)
 if [[ "$direction" == pull ]]; then
     exec rclone sync "$remote_path" "$local_path" "${flags[@]}" "$@"

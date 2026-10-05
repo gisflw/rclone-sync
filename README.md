@@ -3,7 +3,8 @@
 Two manual commands synchronize `LOCAL_ROOT` with the root of `REMOTE_NAME`:
 cloud pull before a session, cloud push during work and before switching machines.
 
-Both commands **apply changes immediately** using `rclone sync`. The source wins:
+Both commands **apply changes immediately** using `rclone sync`, with interactive
+prompts before changes by default. The source wins:
 differing destination files are overwritten, and destination files absent from the
 source are deleted. Files excluded by filters are normally left alone. Add
 `--dry-run` to preview without changing files. There is no bidirectional merge,
@@ -18,7 +19,7 @@ Enter your clone. The examples below run from this directory; the scripts also
 work when invoked by their absolute paths from another directory:
 
 ```bash
-cd ~/rclone-bisync
+cd ~/rclone-sync
 ```
 
 Edit `local.env`. This is shell-compatible **configuration**, not a command to run:
@@ -28,10 +29,7 @@ LOCAL_ROOT="$HOME/gdrive"
 REMOTE_NAME="gdrive"
 ```
 
-`LOCAL_ROOT` must be an absolute, existing directory on each machine. The scripts
-do not create the root. `REMOTE_NAME` is the configured rclone remote name, without
-a colon or path; `gdrive` maps to `gdrive:`. No shell variables need to be loaded
-for the following commands: the scripts read `local.env` themselves.
+`LOCAL_ROOT` must be an absolute, existing directory on each machine. `REMOTE_NAME` is the configured rclone remote name, without a colon or path; `gdrive` maps to `gdrive:`. No shell variables need to be loaded for the following commands: the scripts read `local.env` themselves.
 
 ## Commands from anywhere
 
@@ -70,8 +68,8 @@ source "$HOME/.bashrc"
 
 `cpull` and `cpush` accept the same arguments as `cloud-pull.sh` and
 `cloud-push.sh`, including `--folder` and rclone flags. They apply changes
-immediately and can overwrite or delete destination files; use `--dry-run` to
-preview.
+immediately with interactive prompts and can overwrite or delete destination files;
+use `--dry-run` to preview.
 
 ## Session workflow
 
@@ -124,26 +122,60 @@ Preview a folder pull with a name containing spaces:
 cpull --folder "projects/example" --dry-run
 ```
 
-## Flags and filters
+## Default flags
 
-The scripts supply shared filters, logging, and progress output, plus the defaults listed
-in the transfer-speed section:
-
-| Flag | Reason |
+| Flag | Description |
 | --- | --- |
-| `--filter-from filters.txt` | Apply the shared exclusions using the file's absolute repository path. |
-| `--progress` | Show live transfer statistics. Disable with `--progress=false`. |
-| `--verbose` | Record per-file messages at INFO level. |
-| `--log-file last_sync.log` | Record the latest sync in this file in the repository, keeping terminal output focused on progress. |
+| `--filter-from filters.txt` | Read the shared exclusions from `filters.txt`, passed using its absolute repository path. |
+| `--progress` | Enable live transfer statistics in the terminal. |
+| `--verbose` | Enable INFO logging, including per-file messages; another `--verbose` adds DEBUG detail. |
+| `--log-file last_sync.log` | Write messages from the latest sync to `last_sync.log` in the repository, passed using its absolute path. |
+| `--combined -` | Write a comparison report to stdout (`-`): `=` identical, `+` source only, `-` destination only, `*` different, `!` error. The report does not confirm that changes succeeded. |
+| `--interactive` | Enable prompts before changes. Disable with `--interactive=false`. |
+| `--transfers 16` | Transfer up to 16 files in parallel. Reduce if timeouts increase or bandwidth is already saturated. |
+| `--checkers 32` | Compare up to 32 files in parallel. Reduce if the remote throttles requests. |
+| `--fast-list` | Enable recursive listings where supported, reducing API requests at the cost of more RAM. |
+| `--check-first` | Finish all file comparisons before transferring, avoiding competition for disk I/O but delaying transfers and using more RAM. |
+| `--buffer-size 32M` | Use a 32 MiB read buffer per transfer. Memory use grows with simultaneous transfers. |
+| `--multi-thread-streams 4` | Use four streams per large file on supported destinations (inherited rclone default). Try `8` for large cloud pulls; Google Drive uploads do not support this mode. |
+| `--multi-thread-cutoff 256Mi` | Use multithread transfers for files larger than 256 MiB (inherited rclone default). Lowering it enables parallel streams for smaller files, with extra overhead. |
 
 Additional arguments are passed directly to rclone after the defaults, with quoted
 arguments preserved. Custom values override the corresponding default settings.
+**`--folder relative/path` must come before all rclone flags.** Tune concurrency
+one setting at a time; bandwidth, disk speed, or remote API throttling can limit it.
+The inherited rclone defaults above were checked against v1.75.1.
+
+Push with reduced concurrency and a bandwidth limit:
+
+```bash
+cpush --transfers 2 --checkers 16 --bwlimit 4M
+```
+
+Pull large files with more streams and a smaller buffer per transfer:
+
+```bash
+cpull --folder projects/example --multi-thread-streams 8 --buffer-size 16M
+```
+
+Preview a folder pull with recursive listings and the check-first phase disabled:
+
+```bash
+cpull --folder projects/example --dry-run --fast-list=false --check-first=false
+```
+
+Push without interactive prompts and save the comparison report to a file:
+
+```bash
+cpush --interactive=false --combined "$HOME/sync-report.log"
+```
+
 Useful optional flags include:
 
 | Flag | Effect |
 | --- | --- |
 | `--dry-run` / `-n` | Preview changes without applying them. |
-| `--verbose` / `-v` | Add DEBUG detail to the log, since verbose logging is already enabled by default. |
+| `--bwlimit 4M` | Cap transfer bandwidth at 4 MiB/s; bandwidth is unlimited by default because this flag is unset. |
 | `--checksum` / `-c` | Compare size and checksums instead of modification times; uses size only if no common checksum is available and can require more work. |
 | `--exclude '*.zip'` | Add an exclusion for this invocation; quote patterns so the shell does not expand them. |
 
@@ -153,65 +185,27 @@ Preview a folder pull using checksum comparison and detailed output:
 cpull --folder projects/example --dry-run --checksum --verbose
 ```
 
+For full flag semantics, see [rclone's flag reference](https://rclone.org/flags/),
+[sync documentation](https://rclone.org/commands/rclone_sync/), and
+[tuning documentation](https://rclone.org/docs/#transfers-int).
+
+## Filters
+
 Edit `filters.txt` for persistent exclusions. Its current generated-file and
 junk exclusions apply to every command; nested `.git/` directories are included.
 Filter paths are relative to the selected sync root: with `--folder projects/example`,
 `/retired/` excludes `projects/example/retired/`, rather than the top-level
 `retired/` folder. Selecting a folder directly bypasses exclusions on its parents.
 Extra filter flags add to rclone's filtering rules; they do not automatically
-replace the shared file.
-
-## Transfer speed
-
-The Default column shows the settings used by these scripts. They enable
-`--fast-list` and `--check-first`, set `--checkers 32`, `--transfers 16`, and `--buffer-size 32M`,
-and leave the remaining settings at rclone's defaults. Pass flags to override them.
-Tune one at a time; more concurrency can help until bandwidth, disk speed, or
-remote API throttling becomes the bottleneck.
-
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--transfers` | `16` | Files transferred in parallel. Reduce if timeouts increase or bandwidth is already saturated. |
-| `--bwlimit` | Unlimited | Cap transfer bandwidth, for example `4M` for 4 MiB/s. Leave unset for maximum available speed. |
-| `--checkers` | `32` | Parallel file comparisons. Reduce if the remote throttles requests. |
-| `--fast-list` | `true` | Use recursive listings where supported, reducing API requests at the cost of more RAM. Disable with `--fast-list=false`. |
-| `--check-first` | `true` | Finish all file comparisons before transferring, avoiding competition for disk I/O but delaying transfers and using more RAM. Disable with `--check-first=false`. |
-| `--buffer-size` | `32M` | Read buffer per transfer (32 MiB). Memory use grows with simultaneous transfers; pass a smaller value to reduce it. |
-| `--multi-thread-streams` | `4` | Streams per large file on supported destinations. Try `8` for large cloud pulls; Google Drive uploads do not support this mode. |
-| `--multi-thread-cutoff` | `256Mi` | File size above which multithread transfers are used. Lowering it enables parallel streams for smaller files, with extra overhead. |
-
-The inherited rclone defaults were checked against v1.69.3. See
-[rclone's tuning documentation](https://rclone.org/docs/#transfers-int) for details.
-
-Push with reduced concurrency if the remote is throttling requests:
-
-```bash
-cpush --transfers 8 --checkers 16
-```
-
-Try pulling large files with more streams per file:
-
-```bash
-cpull --folder projects/example --multi-thread-streams 8
-```
-
-Push with a bandwidth limit and two simultaneous transfers:
-
-```bash
-cpush --transfers 2 --bwlimit 4M
-```
-
-For full flag semantics, see [rclone's flag reference](https://rclone.org/flags/),
-[sync documentation](https://rclone.org/commands/rclone_sync/), and
-[filtering documentation](https://rclone.org/filtering/).
-
+replace the shared file. See [rclone's filtering documentation](https://rclone.org/filtering/).
 
 ## Logs
 
 Both commands remove `last_sync.log` if it exists before starting rclone, then
 record verbose messages, including rclone errors, in that file in the repository
 directory. This also applies to dry runs. The existing `*.log` rule in `.gitignore` excludes
-it from Git. Progress stays in the terminal; shell configuration errors still
+it from Git. Progress, the comparison report, and interactive prompts stay in the terminal;
+shell configuration errors still
 appear there. A failed sync returns a nonzero exit status; read the log for details.
 The file contains only the latest run. A custom `--log-file` is passed through
 unchanged; custom log files are not removed.
