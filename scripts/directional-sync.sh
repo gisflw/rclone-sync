@@ -43,7 +43,7 @@ if [[ "$direction" == push && ! -d "$local_path" ]]; then
 fi
 rm -f -- "$repo_dir/last_sync.log"
 flags=(--filter-from "$repo_dir/filters.txt" --progress
-    --verbose --log-file "$repo_dir/last_sync.log" --combined - --interactive
+    --verbose --log-file "$repo_dir/last_sync.log" --interactive
     --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M)
 if [[ "$direction" == pull ]]; then
     exec rclone sync "$remote_path" "$local_path" "${flags[@]}" "$@"

@@ -130,7 +130,6 @@ cpull --folder "projects/example" --dry-run
 | `--progress` | Enable live transfer statistics in the terminal. |
 | `--verbose` | Enable INFO logging, including per-file messages; another `--verbose` adds DEBUG detail. |
 | `--log-file last_sync.log` | Write messages from the latest sync to `last_sync.log` in the repository, passed using its absolute path. |
-| `--combined -` | Write a comparison report to stdout (`-`): `=` identical, `+` source only, `-` destination only, `*` different, `!` error. The report does not confirm that changes succeeded. |
 | `--interactive` | Enable prompts before changes. Disable with `--interactive=false`. |
 | `--transfers 16` | Transfer up to 16 files in parallel. Reduce if timeouts increase or bandwidth is already saturated. |
 | `--checkers 32` | Compare up to 32 files in parallel. Reduce if the remote throttles requests. |
@@ -178,6 +177,7 @@ Useful optional flags include:
 | `--bwlimit 4M` | Cap transfer bandwidth at 4 MiB/s; bandwidth is unlimited by default because this flag is unset. |
 | `--checksum` / `-c` | Compare size and checksums instead of modification times; uses size only if no common checksum is available and can require more work. |
 | `--exclude '*.zip'` | Add an exclusion for this invocation; quote patterns so the shell does not expand them. |
+| `--combined diffs.log` | Write a comparison report `diffs.log`: `=` identical, `+` source only, `-` destination only, `*` different, `!` error. The report does not confirm that changes succeeded. |
 
 Preview a folder pull using checksum comparison and detailed output:
 
