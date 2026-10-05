@@ -3,29 +3,11 @@
 Two manual commands synchronize `LOCAL_ROOT` with the root of `REMOTE_NAME`:
 cloud pull before a session, cloud push during work and before switching machines.
 
-Both commands **preview changes and ask for confirmation** before using `rclone sync`
-to apply them. The source wins: differing destination files are overwritten, and
-destination files absent from the source are deleted. Files excluded by filters
-are normally left alone. Add `--dry-run` or `-n` for preview only, without a
-confirmation prompt or a subsequent sync. There is no bidirectional merge,
+Both commands **apply changes immediately** using `rclone sync`. The source wins:
+differing destination files are overwritten, and destination files absent from the
+source are deleted. Files excluded by filters are normally left alone. Add
+`--dry-run` to preview without changing files. There is no bidirectional merge,
 marker setup, lock, timer, or initialization step.
-
-The preview shows the direction, source, destination, and filenames grouped as
-added, modified, and deleted, with counts. Unchanged files are omitted and repeated
-report entries are deduplicated. Type `y` or `yes` (case-insensitive) at
-`Proceed with sync? [y/N]` to proceed. Any other answer cancels successfully;
-EOF or unavailable input cancels with status 1. There is no confirmation bypass.
-No reported changes means successful completion without a prompt or another sync.
-A failed preview prevents syncing and preserves rclone's exit status; errors in a
-successful preview's report also prevent syncing and return status 1.
-
-The summary is a **prediction**. After confirmation, rclone scans again before
-syncing, so intervening changes can affect the actual operations. This adds a
-comparison pass and remote listing work. Rclone's reports have limitations with
-options such as `--no-traverse`, `--compare-dest`, `--copy-dest`, hard duration
-limits, and server-side directory moves. Reports describe file comparisons;
-metadata and directory-only operations may not appear in these groups. See
-[rclone's reporting documentation](https://rclone.org/commands/rclone_sync/#logger-flags).
 
 ## Configuration
 
@@ -36,7 +18,7 @@ Enter your clone. The examples below run from this directory; the scripts also
 work when invoked by their absolute paths from another directory:
 
 ```bash
-cd ~/rclone-sync
+cd ~/rclone-bisync
 ```
 
 Edit `local.env`. This is shell-compatible **configuration**, not a command to run:
@@ -87,8 +69,9 @@ source "$HOME/.bashrc"
 ```
 
 `cpull` and `cpush` accept the same arguments as `cloud-pull.sh` and
-`cloud-push.sh`, including `--folder` and rclone flags. They preview changes and
-ask before overwriting or deleting destination files; use `--dry-run` for preview only.
+`cloud-push.sh`, including `--folder` and rclone flags. They apply changes
+immediately and can overwrite or delete destination files; use `--dry-run` to
+preview.
 
 Preview a cloud pull from any working directory after installation:
 
@@ -110,15 +93,13 @@ Preview a cloud pull when you want to inspect the changes first:
 ./scripts/cloud-pull.sh --dry-run
 ```
 
-Pull at the beginning of your session; review the preview and confirm to make
-local files match the cloud:
+Pull at the beginning of your session to make local files match the cloud:
 
 ```bash
 ./scripts/cloud-pull.sh
 ```
 
-Push during work and at the end; review the preview and confirm to make the
-cloud match your local files:
+Push during work and at the end to make the cloud match your local files:
 
 ```bash
 ./scripts/cloud-push.sh
@@ -165,22 +146,15 @@ in the transfer-speed section:
 | `--filter-from filters.txt` | Apply the shared exclusions using the file's absolute repository path. |
 | `--progress` | Show live transfer statistics. Disable with `--progress=false`. |
 | `--verbose` | Record per-file messages at INFO level. |
-| `--log-file last_sync.log` | Record the latest invocation in this file in the repository, leaving progress and the preview summary in the terminal. |
+| `--log-file last_sync.log` | Record the latest sync in this file in the repository, keeping terminal output focused on progress. |
 
 Additional arguments are passed directly to rclone after the defaults, with quoted
 arguments preserved. Custom values override the corresponding default settings.
-The preview always appends a forced `--dry-run` and an internal temporary
-`--combined` report, overriding any custom values for these two flags during
-preview. The actual sync receives the original arguments without those internal
-flags. Temporary reports are removed on completion, cancellation, failure, or
-interruption. Explicit `--dry-run` / `-n` requests, including boolean forms such
-as `--dry-run=true` and `-n=false`, use the last supplied value to decide whether
-to stop after the preview. A false value still requires confirmation before syncing.
 Useful optional flags include:
 
 | Flag | Effect |
 | --- | --- |
-| `--dry-run` / `-n` | Show the preview summary and stop without prompting or applying changes. |
+| `--dry-run` / `-n` | Preview changes without applying them. |
 | `--verbose` / `-v` | Add DEBUG detail to the log, since verbose logging is already enabled by default. |
 | `--checksum` / `-c` | Compare size and checksums instead of modification times; uses size only if no common checksum is available and can require more work. |
 | `--exclude '*.zip'` | Add an exclusion for this invocation; quote patterns so the shell does not expand them. |
@@ -203,12 +177,10 @@ replace the shared file.
 
 Both commands remove `last_sync.log` if it exists before starting rclone, then
 record verbose messages, including rclone errors, in that file in the repository
-directory. A confirmed invocation keeps preview and actual-sync messages together;
-preview-only and cancelled invocations retain the preview log. The existing
-`*.log` rule in `.gitignore` excludes it from Git. Progress, the preview summary,
-and shell configuration errors appear in the terminal. A failed sync returns a
-nonzero exit status; read the log for details.
-The file contains only the latest invocation. A custom `--log-file` is passed through
+directory. This also applies to dry runs. The existing `*.log` rule in `.gitignore` excludes
+it from Git. Progress stays in the terminal; shell configuration errors still
+appear there. A failed sync returns a nonzero exit status; read the log for details.
+The file contains only the latest run. A custom `--log-file` is passed through
 unchanged; custom log files are not removed.
 
 Read the latest log messages from the repository directory:
