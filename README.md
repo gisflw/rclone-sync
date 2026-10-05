@@ -73,36 +73,24 @@ source "$HOME/.bashrc"
 immediately and can overwrite or delete destination files; use `--dry-run` to
 preview.
 
-Preview a cloud pull from any working directory after installation:
-
-```bash
-cpull --dry-run
-```
-
-Push from any working directory after installation:
-
-```bash
-cpush
-```
-
 ## Session workflow
 
 Preview a cloud pull when you want to inspect the changes first:
 
 ```bash
-./scripts/cloud-pull.sh --dry-run
+cpull --dry-run
 ```
 
 Pull at the beginning of your session to make local files match the cloud:
 
 ```bash
-./scripts/cloud-pull.sh
+cpull
 ```
 
 Push during work and at the end to make the cloud match your local files:
 
 ```bash
-./scripts/cloud-push.sh
+cpush
 ```
 
 Finish pushing successfully before pulling on another machine. Pulling overwrites
@@ -121,19 +109,19 @@ Pull only the chosen folder. A missing local destination subfolder can be create
 by rclone, but the local root must already exist:
 
 ```bash
-./scripts/cloud-pull.sh --folder projects/example
+cpull --folder projects/example
 ```
 
 Push that folder. Its local source directory must exist:
 
 ```bash
-./scripts/cloud-push.sh --folder projects/example
+cpush --folder projects/example
 ```
 
 Preview a folder pull with a name containing spaces:
 
 ```bash
-./scripts/cloud-pull.sh --folder "projects/example" --dry-run
+cpull --folder "projects/example" --dry-run
 ```
 
 ## Flags and filters
@@ -162,7 +150,7 @@ Useful optional flags include:
 Preview a folder pull using checksum comparison and detailed output:
 
 ```bash
-./scripts/cloud-pull.sh --folder projects/example --dry-run --checksum --verbose
+cpull --folder projects/example --dry-run --checksum --verbose
 ```
 
 Edit `filters.txt` for persistent exclusions. Its current generated-file and
@@ -172,30 +160,6 @@ Filter paths are relative to the selected sync root: with `--folder projects/exa
 `retired/` folder. Selecting a folder directly bypasses exclusions on its parents.
 Extra filter flags add to rclone's filtering rules; they do not automatically
 replace the shared file.
-
-## Logs
-
-Both commands remove `last_sync.log` if it exists before starting rclone, then
-record verbose messages, including rclone errors, in that file in the repository
-directory. This also applies to dry runs. The existing `*.log` rule in `.gitignore` excludes
-it from Git. Progress stays in the terminal; shell configuration errors still
-appear there. A failed sync returns a nonzero exit status; read the log for details.
-The file contains only the latest run. A custom `--log-file` is passed through
-unchanged; custom log files are not removed.
-
-Read the latest log messages from the repository directory:
-
-```bash
-tail -n 50 last_sync.log
-```
-
-Choose a different log file for a particular run:
-
-```bash
-./scripts/cloud-push.sh --log-file "$HOME/cloud-push.log"
-```
-
-See [rclone's logging documentation](https://rclone.org/docs/#log-file-file) for details.
 
 ## Transfer speed
 
@@ -222,21 +186,40 @@ The inherited rclone defaults were checked against v1.69.3. See
 Push with reduced concurrency if the remote is throttling requests:
 
 ```bash
-./scripts/cloud-push.sh --transfers 8 --checkers 16
+cpush --transfers 8 --checkers 16
 ```
 
 Try pulling large files with more streams per file:
 
 ```bash
-./scripts/cloud-pull.sh --folder projects/example --multi-thread-streams 8
+cpull --folder projects/example --multi-thread-streams 8
 ```
 
 Push with a bandwidth limit and two simultaneous transfers:
 
 ```bash
-./scripts/cloud-push.sh --transfers 2 --bwlimit 4M
+cpush --transfers 2 --bwlimit 4M
 ```
 
 For full flag semantics, see [rclone's flag reference](https://rclone.org/flags/),
 [sync documentation](https://rclone.org/commands/rclone_sync/), and
 [filtering documentation](https://rclone.org/filtering/).
+
+
+## Logs
+
+Both commands remove `last_sync.log` if it exists before starting rclone, then
+record verbose messages, including rclone errors, in that file in the repository
+directory. This also applies to dry runs. The existing `*.log` rule in `.gitignore` excludes
+it from Git. Progress stays in the terminal; shell configuration errors still
+appear there. A failed sync returns a nonzero exit status; read the log for details.
+The file contains only the latest run. A custom `--log-file` is passed through
+unchanged; custom log files are not removed.
+
+Choose a different log file for a particular run:
+
+```bash
+cpush --log-file "$HOME/custom.log"
+```
+
+See [rclone's logging documentation](https://rclone.org/docs/#log-file-file) for details.
