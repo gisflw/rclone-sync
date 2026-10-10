@@ -54,3 +54,60 @@
 - *-wal
 - *-shm
 - *-journal
+
+# Temporary directories
+**/tmp/**
+**/temp/**
+**/.tmp/**
+**/.temp/**
+**/tmp-*/**
+**/temp-*/**
+**/.tmp-*/**
+**/.temp-*/**
+**/tmp_*/**
+**/temp_*/**
+**/.tmp_*/**
+**/.temp_*/**
+
+# Incomplete downloads
+*.part
+*.partial
+*.crdownload
+*.aria2
+
+# Python development
+**/.tox/**
+**/.nox/**
+**/.hypothesis/**
+**/.eggs/**
+*.egg-info/**
+**/htmlcov/**
+.coverage
+.coverage.*
+*.prof
+*.pstats
+
+# Additional build systems
+**/.gradle/**
+**/cmake-build-*/**
+**/CMakeFiles/**
+**/.next/**
+**/.turbo/**
+**/coverage/**
+
+# Logs and runtime artifacts
+*.log
+*.log.*
+*.pid
+*.stackdump
+
+# Scientific / generated data directories
+**/data/processed/**
+**/data/cache/**
+**/data/intermediate/**
+**/test-results/**
+**/test_results/**
+
+# GIS auxiliary files
+*.aux.xml
+*.ovr
