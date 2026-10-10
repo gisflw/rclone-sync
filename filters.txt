@@ -56,59 +56,59 @@
 - *-journal
 
 # Temporary directories
-**/tmp/**
-**/temp/**
-**/.tmp/**
-**/.temp/**
-**/tmp-*/**
-**/temp-*/**
-**/.tmp-*/**
-**/.temp-*/**
-**/tmp_*/**
-**/temp_*/**
-**/.tmp_*/**
-**/.temp_*/**
+- **/tmp/**
+- **/temp/**
+- **/.tmp/**
+- **/.temp/**
+- **/tmp-*/**
+- **/temp-*/**
+- **/.tmp-*/**
+- **/.temp-*/**
+- **/tmp_*/**
+- **/temp_*/**
+- **/.tmp_*/**
+- **/.temp_*/**
 
 # Incomplete downloads
-*.part
-*.partial
-*.crdownload
-*.aria2
+- *.part
+- *.partial
+- *.crdownload
+- *.aria2
 
 # Python development
-**/.tox/**
-**/.nox/**
-**/.hypothesis/**
-**/.eggs/**
-*.egg-info/**
-**/htmlcov/**
-.coverage
-.coverage.*
-*.prof
-*.pstats
+- **/.tox/**
+- **/.nox/**
+- **/.hypothesis/**
+- **/.eggs/**
+- *.egg-info/**
+- **/htmlcov/**
+- .coverage
+- .coverage.*
+- *.prof
+- *.pstats
 
 # Additional build systems
-**/.gradle/**
-**/cmake-build-*/**
-**/CMakeFiles/**
-**/.next/**
-**/.turbo/**
-**/coverage/**
+- **/.gradle/**
+- **/cmake-build-*/**
+- **/CMakeFiles/**
+- **/.next/**
+- **/.turbo/**
+- **/coverage/**
 
 # Logs and runtime artifacts
-*.log
-*.log.*
-*.pid
-*.stackdump
+- *.log
+- *.log.*
+- *.pid
+- *.stackdump
 
 # Scientific / generated data directories
-**/data/processed/**
-**/data/cache/**
-**/data/intermediate/**
-**/test-results/**
-**/test_results/**
-**/output/**
+- **/data/processed/**
+- **/data/cache/**
+- **/data/intermediate/**
+- **/test-results/**
+- **/test_results/**
+- **/output/**
 
 # GIS auxiliary files
-*.aux.xml
-*.ovr
+- *.aux.xml
+- *.ovr
