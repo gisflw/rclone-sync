@@ -107,6 +107,7 @@
 **/data/intermediate/**
 **/test-results/**
 **/test_results/**
+**/output/**
 
 # GIS auxiliary files
 *.aux.xml
