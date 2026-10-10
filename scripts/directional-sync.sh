@@ -6,11 +6,15 @@ shift
 case "$direction" in
     pull) command_name=cloud-pull ;;
     push) command_name=cloud-push ;;
+    bisync) command_name=cloud-bisync ;;
     *) printf 'Unknown direction: %s\n' "$direction" >&2; exit 1 ;;
 esac
 
 if [[ "${1:-}" == -h || "${1:-}" == --help ]]; then
-    printf 'Usage: %s.sh [--folder relative/path] [rclone flags...]\nApplies changes immediately with interactive prompts. Use --dry-run to preview.\n' "$command_name"
+    printf 'Usage: %s.sh [--folder relative/path] [rclone flags...]\nApplies changes immediately. Use --dry-run to preview.\n' "$command_name"
+    if [[ "$direction" == bisync ]]; then
+        printf 'Initialize each path pair with --resync (local wins); omit it on later runs.\n'
+    fi
     exit 0
 fi
 
@@ -37,7 +41,7 @@ if [[ -n "$folder" ]]; then
     local_path="${LOCAL_ROOT%/}/$folder"
     remote_path+="$folder"
 fi
-if [[ "$direction" == push && ! -d "$local_path" ]]; then
+if [[ "$direction" != pull && ! -d "$local_path" ]]; then
     printf 'Local source folder is missing: %s\n' "$local_path" >&2
     exit 1
 fi
@@ -47,5 +51,8 @@ flags=(--filter-from "$repo_dir/filters.txt" --progress
     --fast-list --check-first --checkers 32 --transfers 16 --buffer-size 32M)
 if [[ "$direction" == pull ]]; then
     exec rclone sync "$remote_path" "$local_path" "${flags[@]}" "$@"
+fi
+if [[ "$direction" == bisync ]]; then
+    exec rclone bisync "$local_path" "$remote_path" "${flags[@]}" "$@"
 fi
 exec rclone sync "$local_path" "$remote_path" "${flags[@]}" "$@"

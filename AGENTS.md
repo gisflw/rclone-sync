@@ -2,30 +2,34 @@
 
 ## Purpose and layout
 
-This is a small Bash setup for manual one-way `rclone sync` between `LOCAL_ROOT`
-and the root of `REMOTE_NAME`. Keep code minimal, reuse existing scripts, and
+This is a small Bash setup for manual one-way `rclone sync` and bidirectional
+`rclone bisync` between `LOCAL_ROOT` and the root of `REMOTE_NAME`. Keep code minimal, reuse existing scripts, and
 add no dependencies or configuration layers.
 
 - `local.env`: tracked shell-compatible configuration containing non-secret
   paths and the remote name. `LOCAL_ROOT` must be absolute and already exist.
 - `filters.txt`: shared rclone filters. Preserve generated-file exclusions and
   synchronization of nested `.git/` directories.
-- `scripts/cloud-pull.sh` and `scripts/cloud-push.sh`: convenience wrappers around
-  `scripts/directional-sync.sh`.
+- `scripts/cloud-pull.sh`, `scripts/cloud-push.sh`, and `scripts/cloud-bisync.sh`:
+  convenience wrappers around `scripts/directional-sync.sh`.
 - `scripts/directional-sync.sh`: maps roots or an optional relative `--folder`,
-  then executes exactly one `rclone sync` with shared filters and progress output.
+  then executes exactly one `rclone sync` or `rclone bisync` with shared
+  filters and progress output.
 - `tests/smoke.sh`: isolated smoke test with a mocked rclone and temporary HOME.
 
 ## Behavior and scope
 
 - Commands apply changes immediately. Pass `--dry-run` to preview; do not add
-  `--execute`, marker checks, locks, remote discovery, bisync state, or timers.
+  `--execute`, marker checks, locks, remote discovery, custom bisync state
+  management, or timers.
+- Bisync uses rclone's default external state directory and built-in safety behavior.
+  Initialization is explicit with `--resync`; never add it automatically.
 - Sync overwrites destination files and can delete files absent from the source.
   Keep that behavior clear in documentation.
 - A missing local root remains an error; scripts must not create it.
 - `--folder relative/path` precedes rclone flags and maps to the same subfolder
   on both sides. Reject absolute paths and `..` components. Pull may create a
-  destination subfolder; push requires its local source directory to exist.
+  destination subfolder; push and bisync require their selected local directory to exist.
 - Forward custom rclone arguments unchanged and preserve rclone's exit status.
 - Keep authentication and rclone installation outside this repository.
   Never commit credentials, OAuth tokens, `rclone.conf`, logs, or runtime state.
