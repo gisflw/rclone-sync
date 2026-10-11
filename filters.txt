@@ -101,14 +101,14 @@
 - *.pid
 - *.stackdump
 
-# Scientific / generated data directories
-- **/data/processed/**
-- **/data/cache/**
-- **/data/intermediate/**
-- **/data/interim/**
-- **/test-results/**
-- **/test_results/**
-- **/output/**
+# Working data directories
+- /**/data/**
+- /**/input/**
+- /**/output/**
+- /**/runs/**
+
+# Always preserve Markdown files
++ **/*.md
 
 # GIS auxiliary files
 - *.aux.xml
