@@ -105,6 +105,7 @@
 - **/data/processed/**
 - **/data/cache/**
 - **/data/intermediate/**
+- **/data/interim/**
 - **/test-results/**
 - **/test_results/**
 - **/output/**
