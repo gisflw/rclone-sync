@@ -2,6 +2,7 @@
 - /retired/**
 - /prh/**
 - /images/**
+- /datasrc/**
 
 # Linux / filesystem junk
 - *~
