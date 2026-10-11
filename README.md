@@ -40,11 +40,12 @@ From the repository root, create the shortcut directory for your account:
 mkdir -p "$HOME/.local/bin"
 ```
 
-Still in the repository root, install the `cpull` and `cpush` shortcuts:
+Still in the repository root, install the shortcuts:
 
 ```bash
 ln -sT "$PWD/scripts/cloud-pull.sh" "$HOME/.local/bin/cpull" && \
-ln -sT "$PWD/scripts/cloud-push.sh" "$HOME/.local/bin/cpush"
+ln -sT "$PWD/scripts/cloud-push.sh" "$HOME/.local/bin/cpush" && \
+ln -sT "$PWD/scripts/cloud-bisync.sh" "$HOME/.local/bin/cbisync"
 ```
 
 These commands create symlinks and refuse to overwrite existing shortcut files.
@@ -66,19 +67,6 @@ New Bash terminals load the setting automatically:
 ```bash
 source "$HOME/.bashrc"
 ```
-
-`cpull` and `cpush` accept the same arguments as `cloud-pull.sh` and
-`cloud-push.sh`, including `--folder` and rclone flags. They apply changes
-immediately without prompts and can overwrite or delete destination files;
-use `--dry-run` to preview.
-
-Install the optional `cbisync` shortcut from the repository root:
-
-```bash
-ln -sT "$PWD/scripts/cloud-bisync.sh" "$HOME/.local/bin/cbisync"
-```
-
-It follows the same symlink and `PATH` rules and reads the same configuration.
 
 ## Session workflow
 
